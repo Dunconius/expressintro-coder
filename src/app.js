@@ -2,13 +2,13 @@
 
 const express = require("express");
 const serverInstance = express();
+const {body, validationResult} = require("express-validator");
 
 
 // Raw JSON in body allowed
 serverInstance.use(express.json());
 // Form data in body allowed
 serverInstance.use(express.urlencoded({extended: true}));
-
 
 
 
@@ -21,10 +21,6 @@ serverInstance.use("/countries", PokemonRouter);
 
 
 
-
-
-
-
 serverInstance.get("/", (request, response) => {
 	console.log("Someone visited the homepage of the server");
 
@@ -33,14 +29,25 @@ serverInstance.get("/", (request, response) => {
 	});
 });
 
-serverInstance.post("/", (request, response) => {
+serverInstance.post(
+    "/", //path
+    body("username").notEmpty().isLength({min: 4, max: 10}), // middleware in route chain
+    (request, response) => { // final stop in route chain
 
-	console.log(request.body);
+        const errors = validationResult(request);
+        if (!errors.isEmpty()){
+            response.status(400).json({
+                message:"Bad username!",
+                errors: errors.array()
+            });
+        }
 
-	response.json({
-		message:"Received data:",
-		requestData: request.body
-	})
+        console.log(request.body);
+
+        response.json({
+            message:"Received data:",
+            requestData: request.body
+        })
 });
 
 serverInstance.put("/", (request, response) => {
